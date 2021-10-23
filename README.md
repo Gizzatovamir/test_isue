@@ -19,7 +19,7 @@ to recrate all .csv files you need to run:
   ```bash
   python3 twitter_scraper.py 
   ```
-with changing parametrs to your notice 
+with changing parametrs at your liking 
   
 ## Youtube subtitles
   
