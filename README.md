@@ -1,7 +1,7 @@
 # test_isue
 Test task
 
-##Tweeter scraper
+## Tweeter scraper
 ```bash
 twitter_scraper.py 
 ```
