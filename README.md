@@ -15,7 +15,8 @@ However are no NLP filtering(because there are no pretrained models in internet 
 P.s. All repos with weights\models had trash readme, so there werent a chance to run them
 ## Youtube subtitles
   
-```get_subtitles.py
+```bash
+  get_subtitles.py
 ```
 - Creates a json with template:
   ```json
