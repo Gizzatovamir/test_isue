@@ -17,7 +17,7 @@
   [
     "phrase_0",
     "phrase_1",
-    ..
+
   ]
   },
   {
@@ -27,7 +27,7 @@
       [
         "question_0",
         "question_1"
-        ...
+
       ]
     },
     {
@@ -35,7 +35,7 @@
       [
         "answer_0",
         "answer_1",
-        ...
+
       ]
     }
   },
@@ -46,7 +46,7 @@
       [
         "question_0",
         "question_1"
-        ..
+
       ]
     },
     {
@@ -54,11 +54,11 @@
       [
         "answer_0",
         "answer_1",
-        ...
+
       ]
     }
   },
-  ...
+
 ]
 ```
 ## Качество данных
@@ -70,9 +70,9 @@
 ```json
 [
   {
-    text:<text>,
-    start:<start_time>,
-    duration:<duration_time>
+    "text":"<text>",
+    "start":"<start_time>",
+    "duration":"<duration_time>"
   }
 ]
 ```
@@ -91,7 +91,6 @@
       [
         "question_0",
         "question_1"
-        ..
       ]
     },
     {
@@ -99,7 +98,6 @@
       [
         "answer_0",
         "answer_1",
-        ...
       ]
     }
   }
