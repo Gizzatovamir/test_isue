@@ -1,46 +1,109 @@
-# test_isue
-Test task
+# Тестовое задание
 
-## Tweeter scraper
-```bash
-twitter_scraper.py 
-```
-Creates 3 .csv files, that contains:
-- Chosen celebrity tweets
-- Celebrity replies with filter "-from:<Celbrity username> -filter:replies"
-- All tweets about what celebrity said, celebrity once said and celebrity mentioning
+## Логика сбора данных
+### Твиттер
+В твиттере пока оставил только твитты с упоминанием селебы. То есть, твитты типа: "Илон маск одныжды сказал" или "Илон маск сказал", после строки через split() поделены на 2 части и взята только 2 часть (Потому что пока, что не сделал нахождение шаблонов через NLP)
 
-All files are filtered from emijis, links and other symbols.
-However are no NLP filtering(because there are no pretrained models in internet )
-P.s. All repos with weights\models had trash readme, so there werent a chance to run them
+### Ютуб
+На ютубе можно получить достатчно много хороших данных без "шумов", которые есть в твтиттере. Если брать подкасты/интервью, то там разговот 2-3 людей, что дает много данных по диалогам и вопрос-> ответ, а так как у них более высокий приоритет, то основной упор был сделан в платформу.
 
-### eval
-to recrate all .csv files you need to run:
-  ```bash
-  python3 twitter_scraper.py 
-  ```
-with changing parametrs at your liking 
-  
-## Youtube subtitles
-  
-```bash
-  get_subtitles.py
-```
-- Creates a json with template:
-  ```json
+
+## Формат данных
+Пока не придумал ничего лучше, чем хранить в json'e типа
+```json
+[
+  {
+  "phrases":
   [
-    "<Celebrity name>":
-      [
-        "question_<question number>": "<qusetion>",
-        "answer_<answer number>": "<answer>"
-      ],
-  
+    "phrase_0",
+    "phrase_1",
+    ..
   ]
-  ```
-### eval
-to recrate same .json files you need to run:
-  ```bash
-  python3 get_subtitles.py
-  ```
+  },
+  {
+  "video_0":
+    {
+    "questions":
+      [
+        "question_0",
+        "question_1"
+        ...
+      ]
+    },
+    {
+    "answers":
+      [
+        "answer_0",
+        "answer_1",
+        ...
+      ]
+    }
+  },
+  {
+  "video_1":
+    {
+    "questions":
+      [
+        "question_0",
+        "question_1"
+        ..
+      ]
+    },
+    {
+    "answers":
+      [
+        "answer_0",
+        "answer_1",
+        ...
+      ]
+    }
+  },
+  ...
+]
+```
+## Качество данных
+### Фразы
+Данные с очень большими погрешностями, потому что в твитах очень много вариаций "цитирования" и для отсеивания мусроной инфы надо написать шаблонизватор (пока не успел)
+### Вопрос-> ответ
+Здесь качетсво данных обусловленно качеством субтитров, а также насколько они попадают в ответы селебы или вопросы журналиста.
+Потому что сначала берется json полученный через youtube-transcript-api, хранящий субтитры и тайминги по типу:
+```json
+[
+  {
+    text:<text>,
+    start:<start_time>,
+    duration:<duration_time>
+  }
+]
+```
+Далее все идёт по алгоритму:
+- Полный подкаст/интервью пилится на кусики длинной duration_time и начиная с start_time (К сожалению у обученной модели подгрузка аудиофайлов идет только через путь к файлу, поэтому пришлось костылить и сохранять отрывки в файлы типа "extract_i.mp3", а потом уже с ним работать).
+- Подгружается sample голоса Илона Маска и отрывок полного подкаста/интервью
+- Проверяется кто говорит на отрывке:1) Илон Маск, 2)Журналист
+- Если на отрывке говорит Илон Маск, то в answers добавляется текст с субтитров из отрывка
+- Если говрит не Илон Маск, то текст добавляется в вопросы.
+- В конце возвращается json, по типу:
+```json
+{
+  "video_0":
+    {
+    "questions":
+      [
+        "question_0",
+        "question_1"
+        ..
+      ]
+    },
+    {
+    "answers":
+      [
+        "answer_0",
+        "answer_1",
+        ...
+      ]
+    }
+  }
+```
 
-Tried to get timings of celebrity and interviwer speaking, but failed to run voxceleb trained models. So decieded to make correspondence between even and uneven texts in an array.
+
+
