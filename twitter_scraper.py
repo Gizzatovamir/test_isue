@@ -1,33 +1,20 @@
 import pandas as pd
 import twint
 from utils import remove_extra_infom
-
+import json
 
 path_celbrity_tweets = "celbrity_tweets.csv"
 path_about_celebrity_tweets = "tweets_about_celebrities.csv"
 path_celebrity_replies = "celebrity_replies.csv"
 celebrities = [
-    "Nicki Minaj",
-    "Taylor Swift",
-    "Billie Eilish",
-    "Ariana Grande",
-    "Donald Trump",
-    "Elon Musk",
-    "Joe Rogan",
-    "Kanye West",
+    "Elon Musk"
 ]
 usernames = [
-    "taylorswift13",
-    "NICKIMINAJ",
-    "billieeilish",
-    "ArianaGrande",
-    "POTUS45",
-    "elonmusk",
-    "joerogan",
-    "kanyewest",
+    "elonmusk"
+
 ]
 words = [" once said", " said", ""]
-LIMIT = 1500
+LIMIT = 15
 LANG = "en"
 
 
@@ -64,7 +51,8 @@ def search_tweets(username, words):
             ignore_index=True,
         )
     result_data_frame = remove_extra_infom(TweetsDf, username)
-    return result_data_frame
+    result_data_frame.dropna(subset=[username], inplace=True)
+    return json.dumps({"pharses":result_data_frame.values.tolist()})
 
 
 def search_replies(username):
@@ -83,14 +71,19 @@ def search_replies(username):
 
 
 if __name__ == "__main__":
-    celebrity_tweets = pd.DataFrame()
-    tweets_about_celebrities = pd.DataFrame()
-    celebrity_replies = pd.DataFrame()
-    for celebrity in usernames:
-        celebrity_tweets[celebrity] = search_username_tweets(celebrity)
-    for celebrity in celebrities:
-        tweets_about_celebrities[celebrity] = search_tweets(celebrity, words)
-        celebrity_replies[celebrity] = search_replies(celebrity)
-    tweets_about_celebrities.to_csv(path_about_celebrity_tweets)
+    json = search_tweets(celebrities[0],words)
+    print(json)
+    print(type(json))
+    json.loads(json)
+    print(json)
+    # celebrity_tweets = pd.DataFrame()
+    # tweets_about_celebrities = pd.DataFrame()
+    # celebrity_replies = pd.DataFrame()
+    # for celebrity in usernames:
+    #     celebrity_tweets[celebrity] = search_username_tweets(celebrity)
+    # for celebrity in celebrities:
+    #     tweets_about_celebrities[celebrity] = search_tweets(celebrity, words)
+        #celebrity_replies[celebrity] = search_replies(celebrity)
+    '''tweets_about_celebrities.to_csv(path_about_celebrity_tweets)
     tweets_about_celebrities.to_csv(path_celbrity_tweets)
-    celebrity_replies.to_csv(path_celebrity_replies)
+    celebrity_replies.to_csv(path_celebrity_replies)'''

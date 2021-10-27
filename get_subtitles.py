@@ -1,50 +1,97 @@
+import re
+import os
 from youtube_transcript_api import YouTubeTranscriptApi
 import json
-from utils import blank_remove
+from utils import blank_remove, youtube_link_convert, load_audio, video_download
+import speechbrain as sb
+from pydub import AudioSegment
+from pydub.playback import play
 
-path = "QnA.json"
-celebrities = [
-    "Nicki_Minaj",
-    "Taylor_Swift",
-    "Billie_Eilish",
-    "Ariana_Grande",
-    "Donald_Trump",
-    "Elon_Musk",
-    "Joe_Rogan",
-    "Kanye_West",
-]
+MIN_TO_MILSEC = 60*1000
+SEC_TO_MILSEC = 1000
 videos = [
-    "O0RBngBIKhU&ab_channel=HOT97",
-    "ionfV_r8s40&ab_channel=JimmyKimmelLive",
-    "IHMb3QHUMmw&ab_channel=JimmyKimmelLive",
-    "C0n_aqCcTVk&ab_channel=ZachSangShow",
-    "-GwG1_TkhQI&ab_channel=NBCNews",
-    "ESIjxVudERY&ab_channel=TeslaIntelligenceUK",
-    "ZTJSUR1lbiI&ab_channel=BreakingPoints",
-    "qxOeWuAHOiw&t=44s&ab_channel=PowerfulJRE",
+    "https://www.youtube.com/watch?v=zIwLWfaAg-8&t=35s&ab_channel=TED"
+    #"https://www.youtube.com/watch?v=ESIjxVudERY&t=10s&ab_channel=TeslaIntelligenceUK"
+
 ]
-audience_noices = ["[Laughter]", "[Music]", "[Applause]"]
+voice_sample = "../sample.mp3"
+dir = "../audios"
+fragments_dir = "../fragments"
+audience_noices = ["[Laughter]", "[Music]", "[Applause]","(Laughter)"]
 
 
-def generate_transcript(id):
-    transcript = YouTubeTranscriptApi.get_transcript(id)
-    script = []
-    for i in enumerate(transcript):
-        if (i[1]["text"] != "[Music]") and (i[1]["text"] != "[Applause]"):
-            if i[0] % 2 == 0:
-                script.append({"question_{}".format(i[0]): blank_remove(i[1]["text"])})
-            else:
-                script.append(
-                    {"answer_{}".format(i[0] - 1): blank_remove(i[1]["text"])}
-                )
-    return script
+def remove_ambient_noices(script):
+    """Removing ambient noices like: [Music],[Laughter],[Applause]"""
+    clear_script = []
+    for line in script:
+        if line['text'] in audience_noices:
+            pass
+        else:
+            clear_script.append(line)
+    return clear_script
+
+
+def get_text_timing(script,audio):
+    """returning start and end time from script json"""
+    start = script['start']*SEC_TO_MILSEC
+    end = start+script['duration']*SEC_TO_MILSEC
+    return audio[start:end]
+
+
+def generate_transcript(link):
+    return remove_ambient_noices(YouTubeTranscriptApi.get_transcript(link))
+
+
+def generate_data(id, audio_path, sample_path):
+    """verification if speaker is Elon Musk or an interviewer and creating array like
+    {
+    'questions':
+    [
+        <question_1>,
+        ...
+    ],
+    'answers':
+    [
+        <answer_1>,
+        ...
+    ]
+
+    }
+    """
+    subtitles = generate_transcript(youtube_link_convert(id))
+    audio_file = AudioSegment.from_file(audio_path,"mp4")
+    questions = []
+    answers = []
+    verification = sb.pretrained.SpeakerRecognition.from_hparams(source="speechbrain/spkrec-ecapa-voxceleb",
+                                                                 savedir="pretrained_models/spkrec-ecapa-voxceleb")
+    for line, i in zip(subtitles, range(len(subtitles))):
+        fragment = get_text_timing(line, audio_file)
+        fragments_path = fragments_dir+"/fragment-{}.mp3".format(i)
+        fragment.export(fragments_path, format="mp3")
+        waveform_x = verification.load_audio(fragments_path)
+        waveform_y = verification.load_audio(sample_path)
+        score, prediction = verification.verify_files(waveform_x,
+                                                      waveform_y)
+        print(score.item())
+        print(prediction.item())
+        answers.append(line['text']) if prediction.item() else questions.append(line['text'])
+
+    return {
+        "questions_and_answers" : {
+            "questions": questions,
+            "answers": answers
+        }
+    }
 
 
 if __name__ == "__main__":
-    result_json = []
-    for celeb, video_id in zip(celebrities, videos):
-        transcript_celbrity = {celeb: generate_transcript(video_id)}
-        result_json.append(transcript_celbrity)
-
-    with open(path, "w") as outfile:
-        json.dump(result_json, outfile)
+    for video,i in zip(videos,range(len(videos))):
+        if not os.path.exists(dir):
+            os.makedirs(dir)
+        if not os.path.exists(fragments_dir):
+            os.makedirs(fragments_dir)
+        audio_path = dir + "/{}.mp4".format(i)
+        print(audio_path)
+        video_download(video, audio_path)
+        json = generate_data(video, audio_path, voice_sample)
+    print(json)
