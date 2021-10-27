@@ -1,18 +1,13 @@
 import pandas as pd
 import twint
-from utils import remove_extra_infom
+from .utils import remove_extra_infom
 import json
 
 path_celbrity_tweets = "celbrity_tweets.csv"
 path_about_celebrity_tweets = "tweets_about_celebrities.csv"
 path_celebrity_replies = "celebrity_replies.csv"
-celebrities = [
-    "Elon Musk"
-]
-usernames = [
-    "elonmusk"
-
-]
+celebrities = ["Elon Musk"]
+usernames = ["elonmusk"]
 words = [" once said", " said", ""]
 LIMIT = 15
 LANG = "en"
@@ -52,7 +47,7 @@ def search_tweets(username, words):
         )
     result_data_frame = remove_extra_infom(TweetsDf, username)
     result_data_frame.dropna(subset=[username], inplace=True)
-    return json.dumps({"pharses":result_data_frame.values.tolist()})
+    return {"pharses": result_data_frame.values.tolist()}
 
 
 def search_replies(username):
@@ -71,11 +66,9 @@ def search_replies(username):
 
 
 if __name__ == "__main__":
-    json = search_tweets(celebrities[0],words)
+    json = search_tweets(celebrities[0], words)
     print(json)
     print(type(json))
-    json.loads(json)
-    print(json)
     # celebrity_tweets = pd.DataFrame()
     # tweets_about_celebrities = pd.DataFrame()
     # celebrity_replies = pd.DataFrame()
@@ -83,7 +76,7 @@ if __name__ == "__main__":
     #     celebrity_tweets[celebrity] = search_username_tweets(celebrity)
     # for celebrity in celebrities:
     #     tweets_about_celebrities[celebrity] = search_tweets(celebrity, words)
-        #celebrity_replies[celebrity] = search_replies(celebrity)
-    '''tweets_about_celebrities.to_csv(path_about_celebrity_tweets)
+    # celebrity_replies[celebrity] = search_replies(celebrity)
+    """tweets_about_celebrities.to_csv(path_about_celebrity_tweets)
     tweets_about_celebrities.to_csv(path_celbrity_tweets)
-    celebrity_replies.to_csv(path_celebrity_replies)'''
+    celebrity_replies.to_csv(path_celebrity_replies)"""
