@@ -133,7 +133,9 @@ tensor(score)
 tensor(predition)
 ```
 score - это уверенность в предсказании
+
 prediction - предсказание True или False
+
 Также он удаляется посторонние звуки из субтитров по типу:
 ```python
 audience_noices = ["[Laughter]", "[Music]", "[Applause]", "(Laughter)"]
